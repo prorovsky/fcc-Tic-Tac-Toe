@@ -9,5 +9,15 @@ table {
 td {
     width: 100px;
     height: 100px;
-    background-color: purple;
+    background-color: lightcyan;
+}
+
+.horizontal {
+    border-top: 5px solid black;
+    border-bottom: 5px solid black;
+}
+
+.vertical {
+    border-left: 5px solid black;
+    border-right: 5px solid black;
 }
