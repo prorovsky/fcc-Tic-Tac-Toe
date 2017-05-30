@@ -1,0 +1,13 @@
+body {
+    text-align: center;
+}
+
+table {
+    margin: auto;
+}
+
+td {
+    width: 100px;
+    height: 100px;
+    background-color: purple;
+}
