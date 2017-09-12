@@ -3,13 +3,15 @@ body {
 }
 
 table {
-    margin: auto;
+    margin: 20px auto;
+    border-collapse: collapse;
 }
 
 td {
     width: 100px;
     height: 100px;
     background-color: lightcyan;
+    cursor: pointer;
 }
 
 .horizontal {

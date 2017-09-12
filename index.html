@@ -10,30 +10,40 @@
 <body>
     <h1>Tic Tac Toe Game</h1>
     <main class="game">
+        <div class="player-select">
+            <p>
+                Choose your side:
+                <input type="radio" name="group1" value="X" id="X" checked>X</input>
+                <input type="radio" name="group1" value="O" id="O">O</input>
+            </p>
+            <button id="start">Start Game</button>
+        </div>
+        <div class="statictics">
+            <p>Win:<span id="win">0</span> Draw:<span id="draw">0</span> Lose:<span id="lose">0</span></p>
+        </div>
         <table>
-            <!--<thead>
-                <th>Draw</th>
-                <th>Lose</th>
-                <th>Games</th>
-            </thead>-->
             <tbody>
                 <tr>
-                    <td id="1">1</td>
-                    <td class="vertical" id="2">2</td>
-                    <td id="3">3</td>
+                    <td id="1"></td>
+                    <td class="vertical" id="2"></td>
+                    <td id="3"></td>
                 </tr>
                 <tr>
-                    <td class="horizontal">4</td>
-                    <td class="vertical horizontal">5</td>
-                    <td class="horizontal">6</td>
+                    <td class="horizontal" id="4"></td>
+                    <td class="vertical horizontal" id="5"></td>
+                    <td class="horizontal" id="6"></td>
                 </tr>
                 <tr>
-                    <td>7</td>
-                    <td class="vertical">8</td>
-                    <td>9</td>
+                    <td id="7"></td>
+                    <td class="vertical" id="8"></td>
+                    <td id="9"></td>
                 </tr>
             </tbody>
         </table>
+        <button id="reset">Reset</button>
+        <div class="finish">
+
+        </div>
     </main>
 
     <script src="app.js"></script>
