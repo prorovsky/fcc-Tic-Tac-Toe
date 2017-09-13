@@ -22,7 +22,7 @@ const table = document.querySelector("table"),
 let isGameStart = false;
 
 startButton.addEventListener("click", startGame);
-resetButton.addEventListener("click", resetState);
+resetButton.addEventListener("click", resetGameState);
 
 function startGame() {
     isGameStart = true;
@@ -35,7 +35,7 @@ function prepareTable() {
 }
 
 function giveTdValue(e) {
-    if(e.target.tagName === "TD") {
+    if(e.target.tagName === "TD" && e.target.textContent === "") {
         setValueToCell(e.target, checkPlayerSide());
     }
 }
@@ -52,10 +52,10 @@ function checkGameStart(gameState) {
     gameState ? playerControls.style.display = "none" : playerControls.style.display = "block";
 }
 
-function resetState() {
+function resetGameState() {
     isGameStart = false;
     table.removeEventListener("click", giveTdValue);
-    checkGameStart();
+    checkGameStart(isGameStart);
     cells.forEach(cell => cell.innerText = "");
 }
 
