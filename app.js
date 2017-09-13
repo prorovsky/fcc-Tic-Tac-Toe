@@ -7,7 +7,6 @@ const table = document.querySelector("table"),
     sideO = document.getElementById("O"),
     resetButton = document.getElementById("reset"),
     startButton = document.getElementById("start"),
-    board = Array.from(Array(9).keys()),
     winningPosition = [
         [0, 1, 2],
         [3, 4, 5],
@@ -19,7 +18,8 @@ const table = document.querySelector("table"),
         [6, 4, 2]
     ];
 
-let isGameStart = false;
+let isGameStart = false,
+    board;
 
 startButton.addEventListener("click", startGame);
 resetButton.addEventListener("click", resetGameState);
@@ -28,24 +28,41 @@ function startGame() {
     isGameStart = true;
     checkGameStart(isGameStart);
     prepareTable();
+    console.log("Board state:")
+    console.log(board);
 }
 
 function prepareTable() {
     table.addEventListener("click", giveTdValue);
+    board = Array.from(Array(9).keys());
 }
 
 function giveTdValue(e) {
     if(e.target.tagName === "TD" && e.target.textContent === "") {
-        setValueToCell(e.target, checkPlayerSide());
+        board[e.target.id] = playerSide(sideX.checked);
+        setValueToCell(e.target.id, playerSide(sideX.checked));
+        aiTurn();
     }
 }
 
-function checkPlayerSide() {
-    return sideX.checked ? "X" : "O"; 
+function aiTurn() {
+    let emptyCells = board.filter(cell => typeof cell === 'number');
+    setValueToCell(emptyCells[0], aiSide(sideX.checked));
+    board[emptyCells[0]] = aiSide(sideX.checked);
+    console.log("Empty cells:");
+    console.log(emptyCells);
+}
+
+function playerSide(side) {
+    return side ? "X" : "O";
+}
+
+function aiSide(side) {
+    return side ? "O" : "X";
 }
 
 function setValueToCell(cell, playerSide) {
-    cell.innerText = playerSide;
+    document.getElementById(cell).innerText = playerSide;
 }
 
 function checkGameStart(gameState) {
