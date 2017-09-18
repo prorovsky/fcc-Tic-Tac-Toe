@@ -4,10 +4,9 @@ const table = document.querySelector("table"),
     cells = document.querySelectorAll("td"),
     playerControls = document.querySelector(".player-select"),
     sideX = document.getElementById("X"),
-    sideO = document.getElementById("O"),
     resetButton = document.getElementById("reset"),
     startButton = document.getElementById("start"),
-    winningPosition = [
+    winningPositions = [
         [0, 1, 2],
         [3, 4, 5],
         [6, 7, 8],
@@ -15,21 +14,24 @@ const table = document.querySelector("table"),
         [1, 4, 7],
         [2, 5, 8],
         [0, 4, 8],
-        [6, 4, 2]
+        [2, 4, 6]
     ];
 
 let isGameStart = false,
+    humanPlayer,
+    aiPlayer,
     board;
+
+let winner = false;
 
 startButton.addEventListener("click", startGame);
 resetButton.addEventListener("click", resetGameState);
 
 function startGame() {
     isGameStart = true;
-    checkGameStart(isGameStart);
+    setPlayersSide(sideX);
+    hideOrDisplayMenu(isGameStart);
     prepareTable();
-    console.log("Board state:")
-    console.log(board);
 }
 
 function prepareTable() {
@@ -39,40 +41,67 @@ function prepareTable() {
 
 function giveTdValue(e) {
     if(e.target.tagName === "TD" && e.target.textContent === "") {
-        board[e.target.id] = playerSide(sideX.checked);
-        setValueToCell(e.target.id, playerSide(sideX.checked));
-        aiTurn();
+        playerTurn(e.target.id, humanPlayer);
+        if(!winner) aiTurn(aiPlayer);
     }
 }
 
-function aiTurn() {
-    let emptyCells = board.filter(cell => typeof cell === 'number');
-    setValueToCell(emptyCells[0], aiSide(sideX.checked));
-    board[emptyCells[0]] = aiSide(sideX.checked);
-    console.log("Empty cells:");
-    console.log(emptyCells);
+function playerTurn(cell, playerSide) {
+    board[cell] = playerSide;
+    setValueToCell(cell, playerSide);
+    checkWinCondition(playerSide);
 }
 
-function playerSide(side) {
+function aiTurn(aiSide) {
+    const emptyCells = board.filter(cell => typeof cell === 'number');
+    playerTurn(emptyCells[0], aiSide);
+}
+
+function setPlayersSide(side) {
+    humanPlayer = checkPlayerSide(side.checked);
+    aiPlayer = checkPlayerSide(!side.checked);
+}
+
+function checkPlayerSide(side) {
     return side ? "X" : "O";
 }
 
-function aiSide(side) {
-    return side ? "O" : "X";
-}
-
 function setValueToCell(cell, playerSide) {
+    if(cell === undefined) return;
     document.getElementById(cell).innerText = playerSide;
 }
 
-function checkGameStart(gameState) {
+function hideOrDisplayMenu(gameState) {
     gameState ? playerControls.style.display = "none" : playerControls.style.display = "block";
+}
+
+// TODO: refactor this function
+function checkWinCondition(playerSide) {
+    // function which return array playersTurns
+    let playersTurns = [];
+    board.forEach((cell, index) => {
+        if(cell === playerSide) {
+            playersTurns.push(index);
+        }
+    });
+
+    // function which iterates through winConditions and check if playerWin this turn
+    for(let win of winningPositions) {
+        let winCond = win.every((elem) => {
+            return playersTurns.includes(elem);
+        })
+        // function which displays player who win
+        if(winCond) {
+            playerSide === humanPlayer ? console.log('You win!') : console.log('AI win!');
+            winner = true;
+        }
+    }
 }
 
 function resetGameState() {
     isGameStart = false;
     table.removeEventListener("click", giveTdValue);
-    checkGameStart(isGameStart);
+    hideOrDisplayMenu(isGameStart);
     cells.forEach(cell => cell.innerText = "");
 }
 
