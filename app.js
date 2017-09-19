@@ -18,11 +18,10 @@ const table = document.querySelector("table"),
     ];
 
 let isGameStart = false,
+    stopGame = false,
     humanPlayer,
     aiPlayer,
     board;
-
-let winner = false;
 
 startButton.addEventListener("click", startGame);
 resetButton.addEventListener("click", resetGameState);
@@ -42,7 +41,7 @@ function prepareTable() {
 function giveTdValue(e) {
     if(e.target.tagName === "TD" && e.target.textContent === "") {
         playerTurn(e.target.id, humanPlayer);
-        if(!winner) aiTurn(aiPlayer);
+        if(!stopGame) aiTurn(aiPlayer);
     }
 }
 
@@ -75,31 +74,47 @@ function hideOrDisplayMenu(gameState) {
     gameState ? playerControls.style.display = "none" : playerControls.style.display = "block";
 }
 
-// TODO: refactor this function
 function checkWinCondition(playerSide) {
-    // function which return array playersTurns
-    let playersTurns = [];
-    board.forEach((cell, index) => {
-        if(cell === playerSide) {
-            playersTurns.push(index);
-        }
-    });
+    const playerCells = allPlayerCells([], playerSide);
+    checkIfPlayerWinThisTurn(playerCells, playerSide);
+    if(!stopGame) checkForTie();
+}
 
-    // function which iterates through winConditions and check if playerWin this turn
+function checkIfPlayerWinThisTurn(playerCells, playerSide) {
     for(let win of winningPositions) {
         let winCond = win.every((elem) => {
-            return playersTurns.includes(elem);
-        })
-        // function which displays player who win
+            return playerCells.includes(elem);
+        });
         if(winCond) {
-            playerSide === humanPlayer ? console.log('You win!') : console.log('AI win!');
-            winner = true;
+            displayWinner(playerSide);
+            break;
         }
+    }
+}
+
+function displayWinner(playerSide) {
+    playerSide === humanPlayer ? console.log('You win!') : console.log('AI win!');
+    stopGame = true;
+}
+
+function allPlayerCells(arr, playerSide) {
+    board.forEach((cell, index) => {
+        if(cell === playerSide) arr.push(index);
+    });
+    return arr;
+}
+
+function checkForTie() {
+    const isFreeCellExist = board.some(cell => typeof cell === 'number');
+    if(!isFreeCellExist) {
+        console.log('It is a Tie!');
+        stopGame = true;
     }
 }
 
 function resetGameState() {
     isGameStart = false;
+    stopGame = false;
     table.removeEventListener("click", giveTdValue);
     hideOrDisplayMenu(isGameStart);
     cells.forEach(cell => cell.innerText = "");
