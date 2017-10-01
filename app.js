@@ -6,6 +6,7 @@ const table = document.querySelector("table"),
     sideX = document.getElementById("X"),
     resetButton = document.getElementById("reset"),
     startButton = document.getElementById("start"),
+    messageField = document.querySelector(".finish"),
     winningPositions = [
         [0, 1, 2],
         [3, 4, 5],
@@ -17,8 +18,7 @@ const table = document.querySelector("table"),
         [2, 4, 6]
     ];
 
-let isGameStart = false,
-    stopGame = false,
+var stopGame = false,
     humanPlayer,
     aiPlayer,
     board;
@@ -27,9 +27,8 @@ startButton.addEventListener("click", startGame);
 resetButton.addEventListener("click", resetGameState);
 
 function startGame() {
-    isGameStart = true;
     setPlayersSide(sideX);
-    hideOrDisplayMenu(isGameStart);
+    hideOrDisplayMenu(true);
     prepareTable();
 }
 
@@ -39,10 +38,17 @@ function prepareTable() {
 }
 
 function giveTdValue(e) {
-    if(e.target.tagName === "TD" && e.target.textContent === "") {
-        playerTurn(e.target.id, humanPlayer);
-        if(!stopGame) aiTurn(aiPlayer);
+    if(!stopGame) {
+        if(e.target.tagName === "TD" && e.target.textContent === "") {
+            playerTurn(e.target.id, humanPlayer);
+            aiTurn();
+        }
     }
+}
+
+function aiTurn() {
+    const aiChosenCell = minmax(board, aiPlayer).index;
+    playerTurn(aiChosenCell, aiPlayer);
 }
 
 function playerTurn(cell, playerSide) {
@@ -51,9 +57,78 @@ function playerTurn(cell, playerSide) {
     checkWinCondition(playerSide);
 }
 
-function aiTurn(aiSide) {
-    const emptyCells = board.filter(cell => typeof cell === 'number');
-    playerTurn(emptyCells[0], aiSide);
+function minmax(newBoard, playerSide) {
+    const availSpots = emptyCells(newBoard);
+
+    if(checkWin(newBoard, humanPlayer)) {
+        return { score: -10 }
+    } else if(checkWin(newBoard, aiPlayer)) {
+        return { score: 10 }
+    } else if(availSpots.length === 0) {
+        return { score: 0 }
+    }
+
+    const moves = collectAllMoves(availSpots, playerSide, newBoard);
+    return collectionOfBestMoves(moves, playerSide);
+}
+
+function checkWin(board, player) {
+	let plays = board.reduce((a, e, i) =>
+		(e === player) ? a.concat(i) : a, []);
+	let gameWon = null;
+	for (let [index, win] of winningPositions.entries()) {
+		if (win.every(elem => plays.indexOf(elem) > -1)) {
+			gameWon = {index: index, player: player};
+			break;
+		}
+	}
+	return gameWon;
+}
+
+function collectAllMoves(availSpots, playerSide, newBoard) {
+    const moves = [];
+    for(let index of availSpots.keys()) {
+        const move = {};
+		move.index = newBoard[availSpots[index]];
+		newBoard[availSpots[index]] = playerSide;
+        move.score = playerSide === aiPlayer ? minmax(newBoard, humanPlayer).score : minmax(newBoard, aiPlayer).score;
+		newBoard[availSpots[index]] = move.index;
+		moves.push(move);
+    }
+    return moves;
+}
+
+function collectionOfBestMoves(allMoves, playerSide) {
+    const bestMove = playerSide === aiPlayer ? bestMoveIfAiPlayer(allMoves) : bestMoveIfHumanPlayer(allMoves); 
+    return allMoves[bestMove];
+}
+
+function bestMoveIfAiPlayer(allMoves) {
+    let bestScore = -10000,
+        tempBestMove;
+    for(let index of allMoves.keys()) {
+        if(allMoves[index].score > bestScore) {
+            bestScore = allMoves[index].score;
+            tempBestMove = index;
+        } 
+    }
+    return tempBestMove;
+}
+
+function bestMoveIfHumanPlayer(allMoves) {
+    let bestScore = 10000,
+        tempBestMove;
+    for(let index of allMoves.keys()) {
+        if(allMoves[index].score < bestScore) {
+            bestScore = allMoves[index].score;
+            tempBestMove = index;
+        } 
+    }
+    return tempBestMove;
+}
+
+function emptyCells(board) {
+    return board.filter(cell => typeof cell === "number");
 }
 
 function setPlayersSide(side) {
@@ -82,19 +157,28 @@ function checkWinCondition(playerSide) {
 
 function checkIfPlayerWinThisTurn(playerCells, playerSide) {
     for(let win of winningPositions) {
-        let winCond = win.every((elem) => {
-            return playerCells.includes(elem);
-        });
-        if(winCond) {
+        if(isWinCondition(win, playerCells)) {
             displayWinner(playerSide);
             break;
         }
     }
 }
 
+function isWinCondition(arrOfWinPositions, playerCells) {
+    return arrOfWinPositions.every(elem => {
+        return playerCells.includes(elem);
+    });
+}
+
 function displayWinner(playerSide) {
-    playerSide === humanPlayer ? console.log('You win!') : console.log('AI win!');
+    playerSide === humanPlayer ? createMessage("No!!! You can't win!") : createMessage("AI Win!");
     stopGame = true;
+}
+
+function createMessage(message) {
+    let p = document.createElement("p");
+    p.innerText = message;
+    messageField.appendChild(p);
 }
 
 function allPlayerCells(arr, playerSide) {
@@ -105,20 +189,21 @@ function allPlayerCells(arr, playerSide) {
 }
 
 function checkForTie() {
-    const isFreeCellExist = board.some(cell => typeof cell === 'number');
+    const isFreeCellExist = board.some(cell => typeof cell === "number");
     if(!isFreeCellExist) {
-        console.log('It is a Tie!');
+        createMessage("It's a Draw!");
         stopGame = true;
     }
 }
 
 function resetGameState() {
-    isGameStart = false;
     stopGame = false;
     table.removeEventListener("click", giveTdValue);
-    hideOrDisplayMenu(isGameStart);
+    hideOrDisplayMenu(false);
+    clearMessageField();
     cells.forEach(cell => cell.innerText = "");
 }
 
-// messages for start and and battle like lets fight, decent opponent, I will crush you
-// better luck next time, I love you, send nudes
+function clearMessageField() {
+    messageField.innerHTML = "";
+}
